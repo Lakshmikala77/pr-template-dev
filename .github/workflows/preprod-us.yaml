@@ -7,7 +7,7 @@ on:
 
 jobs:
   lint:
-    if: ${{ startsWith(github.event.pull_request.title, '[us/') && github.event.pull_request.base.ref == 'preprod' }}
+    if: ${{ startsWith(github.event.pull_request.title, '[us/') }}
     name: Lint
     runs-on: ubuntu-latest
     steps:
