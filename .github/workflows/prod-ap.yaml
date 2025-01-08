@@ -3,9 +3,16 @@ name: Build and Push Docker Image to Docker Hub
 on:
   pull_request:
     branches:
-      - prod
+      - production
 
 jobs:
+   lint:
+    if: ${{startsWith(github.event.pull_request.title, '[us/') && github.event.pull_request.base.ref == 'production'}}
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
   build-and-push:
     runs-on: ubuntu-latest
 
