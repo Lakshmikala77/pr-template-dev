@@ -1,14 +1,23 @@
-## Select Env
-- Dev
-- Staging
+# Select Environment
+- Dev: `N`
+- Staging: `N`
+- Preprod: `N`
+- Prod: `N`
 
-## Provide image tag values for dev env
-- AP:
-- EU:
-- US:
-
-
-## Provide image tag values for staging env
-- AP:
-- EU:
-- US:
+# Image Tags for Selected Environment
+### Dev Environment 
+- **AP Region:** ``
+- **EU Region:** ``
+- **US Region:** ``
+### Staging Environment 
+- **AP Region:** ``
+- **EU Region:** ``
+- **US Region:** ``
+### Preprod Environment 
+- **AP Region:** ``
+- **EU Region:** ``
+- **US Region:** ``
+### Prod Environment 
+- **AP Region:** ``
+- **EU Region:** ``
+- **US Region:** ``
