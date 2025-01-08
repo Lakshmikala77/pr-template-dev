@@ -7,7 +7,7 @@ on:
 
 jobs:
   lint:
-    if: ${{ startsWith(github.event.pull_request.title, '[ap/eu/us/')}}
+    #if: ${{ startsWith(github.event.pull_request.title, '[ap/eu/us/')}}
     name: Lint
     runs-on: ubuntu-latest
     steps:
