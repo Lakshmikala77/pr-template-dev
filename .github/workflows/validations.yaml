@@ -1,70 +1,33 @@
-name: Validate PR Description and Trigger Deployment
+name: Deploy to Docker Hub
 
 on:
   pull_request:
-    types: [opened, edited, synchronize]
+    branches:
+      - dev  # Trigger this workflow on PR to dev branch
 
 jobs:
-  extract_and_deploy:
+  deploy-dev:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the repository
+      # Step 1: Checkout the repository code
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Extract PR description
-        id: pr_description
+      # Step 2: Set up Docker Buildx (for multi-platform support, optional)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Step 3: Login to Docker Hub using GitHub Secrets
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 4: Build and push the Docker image
+      - name: Build and push Docker image to Docker Hub
         run: |
-          PR_DESC=$(jq --raw-output .pull_request.body $GITHUB_EVENT_PATH)
-          echo "PR Description: $PR_DESC"
-          echo "::set-output name=description::$PR_DESC"
-
-      - name: Extract selected environment and image tags
-        id: extract_values
-        run: |
-          PR_DESC="${{ steps.pr_description.outputs.description }}"
-          ENVIRONMENT=$(echo "$PR_DESC" | grep -oP '(?<=## Select Environment:)[\s\S]*?(\n- \[x\] [^\n]+)' | head -n 1 | cut -d' ' -f2)
-          AP_TAG=$(echo "$PR_DESC" | grep -oP '(?<=- ap-image-tag: ).*' | head -n 1)
-          EU_TAG=$(echo "$PR_DESC" | grep -oP '(?<=- eu-image-tag: ).*' | head -n 1)
-          US_TAG=$(echo "$PR_DESC" | grep -oP '(?<=- us-image-tag: ).*' | head -n 1)
-
-          echo "Selected Environment: $ENVIRONMENT"
-          echo "AP Image Tag: $AP_TAG"
-          echo "EU Image Tag: $EU_TAG"
-          echo "US Image Tag: $US_TAG"
-
-          echo "::set-output name=environment::$ENVIRONMENT"
-          echo "::set-output name=ap_tag::$AP_TAG"
-          echo "::set-output name=eu_tag::$EU_TAG"
-          echo "::set-output name=us_tag::$US_TAG"
-
-      - name: Deploy to selected environment
-        run: |
-          ENVIRONMENT=${{ steps.extract_values.outputs.environment }}
-          AP_TAG=${{ steps.extract_values.outputs.ap_tag }}
-          EU_TAG=${{ steps.extract_values.outputs.eu_tag }}
-          US_TAG=${{ steps.extract_values.outputs.us_tag }}
-          
-          # Deploy logic here, e.g., use kubectl, Azure CLI, or AWS CLI
-          echo "Deploying to environment: $ENVIRONMENT"
-          echo "Deploying to AP with tag: $AP_TAG"
-          echo "Deploying to EU with tag: $EU_TAG"
-          echo "Deploying to US with tag: $US_TAG"
-
-          # Here you can have conditions based on the selected environment
-          if [ "$ENVIRONMENT" == "dev" ]; then
-            echo "Deploying to dev..."
-            # Run your dev-specific deployment commands here
-          elif [ "$ENVIRONMENT" == "staging" ]; then
-            echo "Deploying to staging..."
-            # Run your staging-specific deployment commands here
-          elif [ "$ENVIRONMENT" == "preprod" ]; then
-            echo "Deploying to preprod..."
-            # Run your preprod-specific deployment commands here
-          elif [ "$ENVIRONMENT" == "prod" ]; then
-            echo "Deploying to prod..."
-            # Run your prod-specific deployment commands here
-          else
-            echo "Invalid environment selected. Please select a valid environment."
-            exit 1
-          fi
+          # Build the Docker image with the tag provided in the PR description (e.g., my-app:tag)
+          docker build -t myusername/my-app:$IMAGE_TAG .
+          docker push myusername/my-app:$IMAGE_TAG
