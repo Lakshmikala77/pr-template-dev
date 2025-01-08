@@ -21,8 +21,8 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t your-docker-username/your-repository-name:$GITHUB_SHA .
+          docker build -t your-docker-LAKSHMIKALA77/my-app:$GITHUB_SHA .
 
       - name: Push Docker image to Docker Hub
         run: |
-          docker push your-docker-username/your-repository-name:$GITHUB_SHA
+          docker push your-docker-LAKSHMIKALA77/my-app:$GITHUB_SHA
