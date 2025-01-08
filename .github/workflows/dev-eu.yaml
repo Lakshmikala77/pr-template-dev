@@ -6,7 +6,7 @@ on:
       - dev
 
 jobs:
-  lint:
+  # lint:
     #if: ${{startsWith(github.event.pull_request.title, '[us/') && github.event.pull_request.base.ref == 'production'}}
   build-and-push:
     runs-on: ubuntu-latest
