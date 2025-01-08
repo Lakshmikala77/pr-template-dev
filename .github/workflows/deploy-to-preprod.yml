@@ -368,6 +368,7 @@
 #         uses: ./.github/workflows/preprod-eu.yaml
 #         with:
 #           sha: ${{ github.sha }}
+
 name: Trigger Preprod Region Deployment
 
 on:
@@ -398,6 +399,7 @@ jobs:
           else
             # Default: Deploy all regions
             echo "target-files=preprod-ap,preprod-eu,preprod-us" >> $GITHUB_ENV
+          fi
 
   trigger-region-deployment:
     needs: determine-region
@@ -407,24 +409,19 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Trigger AP Region Deployment
-        if: contains(needs.determine-region.outputs.target-files, 'preprod-ap')
+        if: contains(env.target-files, 'preprod-ap')
         uses: ./.github/workflows/preprod-ap.yaml
         with:
           sha: ${{ github.sha }}
 
       - name: Trigger EU Region Deployment
-        if: contains(needs.determine-region.outputs.target-files, 'preprod-eu')
+        if: contains(env.target-files, 'preprod-eu')
         uses: ./.github/workflows/preprod-eu.yaml
         with:
           sha: ${{ github.sha }}
 
       - name: Trigger US Region Deployment
-        if: contains(needs.determine-region.outputs.target-files, 'preprod-us')
+        if: contains(env.target-files, 'preprod-us')
         uses: ./.github/workflows/preprod-us.yaml
         with:
           sha: ${{ github.sha }}
-#       - name: Trigger US Region Deployment
-#         if: contains(needs.determine-region.outputs.target-files, 'preprod-us')
-#         uses: ./.github/workflows/preprod-us.yaml
-#         with:
-#           sha: ${{ github.sha }}
