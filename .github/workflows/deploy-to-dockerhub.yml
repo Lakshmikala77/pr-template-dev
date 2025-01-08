@@ -1,4 +1,4 @@
-name: Build and Deploy Docker Image to Docker Hub
+name: Build and Push Docker Image to Docker Hub
 
 on:
   pull_request:
@@ -21,8 +21,12 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t your-docker-lakshmikala77/my-app:$GITHUB_SHA .
+          docker build -t lakshmi979/my-app:$GITHUB_SHA .
+
+      - name: List Docker images (for debugging)
+        run: |
+          docker images
 
       - name: Push Docker image to Docker Hub
         run: |
-          docker push your-docker-lakshmikala77/my-app:$GITHUB_SHA
+          docker push lakshmi979/my-app:$GITHUB_SHA
