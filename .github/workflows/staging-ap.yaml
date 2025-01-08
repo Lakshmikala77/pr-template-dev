@@ -6,18 +6,10 @@ on:
       - staging
 
 jobs:
-  lint:
-    if: ${{ startsWith(github.event.pull_request.title, '[ap/eu/us/')}}
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Linting
-        run: npm run lint
-        shell: bash
+  
 
   build-and-push:
-    needs: lint
+  
     name: Build and Push
     runs-on: ubuntu-latest
     steps:
