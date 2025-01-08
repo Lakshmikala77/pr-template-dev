@@ -1,3 +1,4 @@
+
 name: Build and Deploy Docker Image
 
 on:
@@ -105,3 +106,4 @@ jobs:
           echo "Prod AP Image Tag: $IMAGE_TAG_PROD_AP"
           echo "Prod EU Image Tag: $IMAGE_TAG_PROD_EU"
           echo "Prod US Image Tag: $IMAGE_TAG_PROD_US"
+
