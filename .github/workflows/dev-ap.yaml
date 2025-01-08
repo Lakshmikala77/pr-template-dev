@@ -32,6 +32,7 @@ jobs:
           # Set the image tag as an environment variable so it can be used in later steps
           echo "IMAGE_TAG_DEV_AP=$IMAGE_TAG_DEV_AP" >> $GITHUB_ENV
 
+
       - name: Deploy to Dev - AP Region
         run: |
           # Ensure that the image tag is available
