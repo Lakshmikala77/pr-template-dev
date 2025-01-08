@@ -383,23 +383,27 @@ jobs:
       target-files: ${{ steps.set-region.outputs.target-files }}
     steps:
       - name: Parse PR Title
-        id: set-region
-        run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          echo "PR Title: $PR_TITLE"
-          # Logic for determining region(s) based on PR title
-          if [[ "$PR_TITLE" == *"[ap]: deploy"* ]]; then
-            echo "target-files=preprod-ap" >> $GITHUB_ENV
-          elif [[ "$PR_TITLE" == *"[eu]: deploy"* ]]; then
-            echo "target-files=preprod-eu" >> $GITHUB_ENV
-          elif [[ "$PR_TITLE" == *"[us]: deploy"* ]]; then
-            echo "target-files=preprod-us" >> $GITHUB_ENV
-          elif [[ "$PR_TITLE" == *"[ap/eu/us]: deploy"* ]]; then
-            echo "target-files=preprod-ap,preprod-eu,preprod-us" >> $GITHUB_ENV
-          else
-            # Default: Deploy all regions
-            echo "target-files=preprod-ap,preprod-eu,preprod-us" >> $GITHUB_ENV
-          fi
+  id: set-region
+  run: |
+    PR_TITLE="${{ github.event.pull_request.title }}"
+    echo "PR Title: $PR_TITLE"
+    # Logic for determining region(s) based on PR title
+    if [[ "$PR_TITLE" == *"[ap]: deploy"* ]]; then
+      echo "target-files=preprod-ap" >> $GITHUB_ENV
+    elif [[ "$PR_TITLE" == *"[eu]: deploy"* ]]; then
+      echo "target-files=preprod-eu" >> $GITHUB_ENV
+    elif [[ "$PR_TITLE" == *"[us]: deploy"* ]]; then
+      echo "target-files=preprod-us" >> $GITHUB_ENV
+    elif [[ "$PR_TITLE" == *"[ap/eu/us]: deploy"* ]]; then
+      echo "target-files=preprod-ap,preprod-eu,preprod-us" >> $GITHUB_ENV
+    else
+      # Default: Deploy all regions
+      echo "target-files=preprod-ap,preprod-eu,preprod-us" >> $GITHUB_ENV
+    fi
+
+    # Debugging step: print the target-files to verify the value
+    echo "target-files=${{ env.target-files }}"
+
 
   trigger-region-deployment:
     needs: determine-region
@@ -414,11 +418,14 @@ jobs:
         with:
           sha: ${{ github.sha }}
 
-      - name: Trigger EU Region Deployment
-        if: contains(env.target-files, 'preprod-eu')
-        uses: ./.github/workflows/preprod-eu.yaml
+      - name: Trigger AP Region Deployment
+        if: contains(env.target-files, 'preprod-ap')
+        uses: ./.github/workflows/preprod-ap.yaml
         with:
           sha: ${{ github.sha }}
+        env:
+          TARGET_REGION: ap
+
 
       - name: Trigger US Region Deployment
         if: contains(env.target-files, 'preprod-us')
