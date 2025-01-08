@@ -32,7 +32,7 @@ jobs:
           docker push lakshmi979/my-app:$GITHUB_SHA
 
   extract-pr-info:
-    needs: build-and-push
+    #needs: build-and-push
     runs-on: ubuntu-latest
     steps:
       - name: Extract PR information
