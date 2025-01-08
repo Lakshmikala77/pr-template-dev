@@ -1,4 +1,4 @@
-# dev-ap.yaml
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,3 +18,4 @@ spec:
         image: "my-app:${{ inputs.ap_image_tag }}"
         ports:
         - containerPort: 8080
+
