@@ -24,4 +24,6 @@ jobs:
 
       - name: Push Docker image to Docker Hub
         run: |
-          docker push your-docker-lakshmi979/my-app:$GITHUB_SHA
+
+          docker push lakshmi979/my-app:$GITHUB_SHA
+
