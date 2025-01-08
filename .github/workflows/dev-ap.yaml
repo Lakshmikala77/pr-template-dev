@@ -1,5 +1,4 @@
 name: Deploy to Dev - AP Region
-
 on:
   pull_request:
     branches:
@@ -11,7 +10,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
       - name: Extract image tag for Dev AP
         run: |
           # Extract the image tag from the PR description
