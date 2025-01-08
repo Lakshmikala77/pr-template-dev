@@ -1,38 +1,20 @@
-name: Deploy to Dev - us Region
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev-us-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: my-app-container
+          image: "my-app:${{ inputs.us_image_tag }}"
+          ports:
+            - containerPort: 8080
 
-on:
-  pull_request:
-    branches:
-      - dev
-
-jobs:
-  deploy-dev-us:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Extract image tag for Dev us
-        run: |
-          # Extract the image tag from the PR description
-          PR_BODY="${{ github.event.pull_request.body }}"
-          
-          # Search for the 'Dev' image tag in the PR description (assuming it's like 'Dev: <image-tag>')
-          IMAGE_TAG_DEV_US=$(echo "$PR_BODY" | grep -oP '(?<=Dev: )[^\n]+' | xargs)
-
-          # Sanitize the image tag (remove any quotes)
-          IMAGE_TAG_DEV_US=$(echo "$IMAGE_TAG_DEV_us" | sed 's/["]//g')
-
-          # Check if the tag is found and output it
-          if [[ -z "$IMAGE_TAG_DEV_US" ]]; then
-            echo "Error: Dev image tag not found!"
-            exit 1
-          fi
-
-          echo "Dev us Image Tag: $IMAGE_TAG_DEV_US"
-          echo "IMAGE_TAG_DEV_US=$IMAGE_TAG_DEV_US" >> $GITHUB_ENV
-
-      - name: Deploy to Dev - us
-        run: |
-          echo "Deploying to Dev us Region with Image Tag: $IMAGE_TAG_DEV_US"
-          # Add your deployment command here, e.g., kubectl, docker, etc.
