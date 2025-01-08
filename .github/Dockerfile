@@ -10,8 +10,10 @@ COPY . .
 # Install any needed dependencies
 RUN npm install
 
+
 # Make your app available on port 8080
 EXPOSE 8080
 
 # Run the app when the container starts
 CMD ["npm", "start"]
+
