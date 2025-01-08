@@ -1,5 +1,4 @@
 name: Build and Deploy Docker Image to Docker Hub
-
 on:
   pull_request:
     branches:
