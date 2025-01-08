@@ -31,75 +31,65 @@ jobs:
         run: |
           docker push lakshmi979/my-app:$GITHUB_SHA
 
-  extract-pr-info:
-    #needs: build-and-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Extract PR information
-        run: |
-          PR_BODY=$(cat <<EOF
-          # Select Environment
-            - Dev: `N`
-            - Staging: `N`
-            - Preprod: `N`
-            - Prod: `N`
+name: Extract PR information
+    run: |
+      PR_BODY="
+      # Select Environment
+      - Dev: `N`
+      - Staging: `N`
+      - Preprod: `N`
+      - Prod: `N`
+      # Image Tags for Selected Environment
+      ### Dev Environment
+      - AP Region: `drtef`
+      - EU Region: `fdger`
+      - US Region: `ertre`
+      ### Staging Environment
+      - AP Region: ``
+      - EU Region: ``
+      - US Region: ``
+      ### Preprod Environment
+      - AP Region: ``
+      - EU Region: ``
+      - US Region: ``
+      ### Prod Environment
+      - AP Region: ``
+      - EU Region: ``
+      - US Region: ``
+      "
 
-          # Image Tags for Selected Environment
+      # Extract image tags using sed
+      IMAGE_TAG_DEV_AP=$(echo "$PR_BODY" | sed -n 's/.*Dev Environment.*- AP Region: `\([^`]*\)`.*/\1/p')
+      IMAGE_TAG_DEV_EU=$(echo "$PR_BODY" | sed -n 's/.*Dev Environment.*- EU Region: `\([^`]*\)`.*/\1/p')
+      IMAGE_TAG_DEV_US=$(echo "$PR_BODY" | sed -n 's/.*Dev Environment.*- US Region: `\([^`]*\)`.*/\1/p')
 
-          ### Dev Environment
-            - **AP Region:** `drtef`
-            - **EU Region:** `fdger`
-            - **US Region:** `ertre`
+      IMAGE_TAG_STAGING_AP=$(echo "$PR_BODY" | sed -n 's/.*Staging Environment.*- AP Region: `\([^`]*\)`.*/\1/p')
+      IMAGE_TAG_STAGING_EU=$(echo "$PR_BODY" | sed -n 's/.*Staging Environment.*- EU Region: `\([^`]*\)`.*/\1/p')
+      IMAGE_TAG_STAGING_US=$(echo "$PR_BODY" | sed -n 's/.*Staging Environment.*- US Region: `\([^`]*\)`.*/\1/p')
 
-          ### Staging Environment
-            - **AP Region:** ``
-            - **EU Region:** ``
-            - **US Region:** ``
+      IMAGE_TAG_PROD_AP=$(echo "$PR_BODY" | sed -n 's/.*Prod Environment.*- AP Region: `\([^`]*\)`.*/\1/p')
+      IMAGE_TAG_PROD_EU=$(echo "$PR_BODY" | sed -n 's/.*Prod Environment.*- EU Region: `\([^`]*\)`.*/\1/p')
+      IMAGE_TAG_PROD_US=$(echo "$PR_BODY" | sed -n 's/.*Prod Environment.*- US Region: `\([^`]*\)`.*/\1/p')
 
-          ### Preprod Environment
-            - **AP Region:** ``
-            - **EU Region:** ``
-            - **US Region:** ``
+      # Save tags to GitHub environment variables
+      echo "IMAGE_TAG_DEV_AP=$IMAGE_TAG_DEV_AP" >> $GITHUB_ENV
+      echo "IMAGE_TAG_DEV_EU=$IMAGE_TAG_DEV_EU" >> $GITHUB_ENV
+      echo "IMAGE_TAG_DEV_US=$IMAGE_TAG_DEV_US" >> $GITHUB_ENV
+      echo "IMAGE_TAG_STAGING_AP=$IMAGE_TAG_STAGING_AP" >> $GITHUB_ENV
+      echo "IMAGE_TAG_STAGING_EU=$IMAGE_TAG_STAGING_EU" >> $GITHUB_ENV
+      echo "IMAGE_TAG_STAGING_US=$IMAGE_TAG_STAGING_US" >> $GITHUB_ENV
+      echo "IMAGE_TAG_PROD_AP=$IMAGE_TAG_PROD_AP" >> $GITHUB_ENV
+      echo "IMAGE_TAG_PROD_EU=$IMAGE_TAG_PROD_EU" >> $GITHUB_ENV
+      echo "IMAGE_TAG_PROD_US=$IMAGE_TAG_PROD_US" >> $GITHUB_ENV
 
-          ### Prod Environment
-            - **AP Region:** ``
-            - **EU Region:** ``
-            - **US Region:** ``
-          EOF
-          )
-
-          # Extract image tags from the PR description
-          IMAGE_TAG_DEV_AP=$(echo "$PR_BODY" | grep -oP '(?<=Dev Environment\s*- AP Region: `)[^`]+')
-          IMAGE_TAG_DEV_EU=$(echo "$PR_BODY" | grep -oP '(?<=Dev Environment\s*- EU Region: `)[^`]+')
-          IMAGE_TAG_DEV_US=$(echo "$PR_BODY" | grep -oP '(?<=Dev Environment\s*- US Region: `)[^`]+')
-
-          IMAGE_TAG_STAGING_AP=$(echo "$PR_BODY" | grep -oP '(?<=Staging Environment\s*- AP Region: `)[^`]+')
-          IMAGE_TAG_STAGING_EU=$(echo "$PR_BODY" | grep -oP '(?<=Staging Environment\s*- EU Region: `)[^`]+')
-          IMAGE_TAG_STAGING_US=$(echo "$PR_BODY" | grep -oP '(?<=Staging Environment\s*- US Region: `)[^`]+')
-
-          IMAGE_TAG_PROD_AP=$(echo "$PR_BODY" | grep -oP '(?<=Prod Environment\s*- AP Region: `)[^`]+')
-          IMAGE_TAG_PROD_EU=$(echo "$PR_BODY" | grep -oP '(?<=Prod Environment\s*- EU Region: `)[^`]+')
-          IMAGE_TAG_PROD_US=$(echo "$PR_BODY" | grep -oP '(?<=Prod Environment\s*- US Region: `)[^`]+')
-
-          # Save tags to GitHub environment variables
-          echo "IMAGE_TAG_DEV_AP=$IMAGE_TAG_DEV_AP" >> $GITHUB_ENV
-          echo "IMAGE_TAG_DEV_EU=$IMAGE_TAG_DEV_EU" >> $GITHUB_ENV
-          echo "IMAGE_TAG_DEV_US=$IMAGE_TAG_DEV_US" >> $GITHUB_ENV
-          echo "IMAGE_TAG_STAGING_AP=$IMAGE_TAG_STAGING_AP" >> $GITHUB_ENV
-          echo "IMAGE_TAG_STAGING_EU=$IMAGE_TAG_STAGING_EU" >> $GITHUB_ENV
-          echo "IMAGE_TAG_STAGING_US=$IMAGE_TAG_STAGING_US" >> $GITHUB_ENV
-          echo "IMAGE_TAG_PROD_AP=$IMAGE_TAG_PROD_AP" >> $GITHUB_ENV
-          echo "IMAGE_TAG_PROD_EU=$IMAGE_TAG_PROD_EU" >> $GITHUB_ENV
-          echo "IMAGE_TAG_PROD_US=$IMAGE_TAG_PROD_US" >> $GITHUB_ENV
-
-      - name: Print Image Tags
-        run: |
-          echo "Dev AP: $IMAGE_TAG_DEV_AP"
-          echo "Dev EU: $IMAGE_TAG_DEV_EU"
-          echo "Dev US: $IMAGE_TAG_DEV_US"
-          echo "Staging AP: $IMAGE_TAG_STAGING_AP"
-          echo "Staging EU: $IMAGE_TAG_STAGING_EU"
-          echo "Staging US: $IMAGE_TAG_STAGING_US"
-          echo "Prod AP: $IMAGE_TAG_PROD_AP"
-          echo "Prod EU: $IMAGE_TAG_PROD_EU"
-          echo "Prod US: $IMAGE_TAG_PROD_US"
+  - name: Print Image Tags
+    run: |
+      echo "Dev AP: $IMAGE_TAG_DEV_AP"
+      echo "Dev EU: $IMAGE_TAG_DEV_EU"
+      echo "Dev US: $IMAGE_TAG_DEV_US"
+      echo "Staging AP: $IMAGE_TAG_STAGING_AP"
+      echo "Staging EU: $IMAGE_TAG_STAGING_EU"
+      echo "Staging US: $IMAGE_TAG_STAGING_US"
+      echo "Prod AP: $IMAGE_TAG_PROD_AP"
+      echo "Prod EU: $IMAGE_TAG_PROD_EU"
+      echo "Prod US: $IMAGE_TAG_PROD_US"
