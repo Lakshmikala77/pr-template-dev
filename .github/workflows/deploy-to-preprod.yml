@@ -365,12 +365,12 @@ jobs:
 
       - name: Trigger EU Region Deployment
         if: contains(needs.determine-region.outputs.target-files, 'preprod-eu')
-        uses: ./.github/workflows/preprod-eu.yaml
+        uses: .github/workflows/preprod-eu.yaml
         with:
           sha: ${{ github.sha }}
 
       - name: Trigger US Region Deployment
         if: contains(needs.determine-region.outputs.target-files, 'preprod-us')
-        uses: ./.github/workflows/preprod-us.yaml
+        uses: .github/workflows/preprod-us.yaml
         with:
           sha: ${{ github.sha }}
