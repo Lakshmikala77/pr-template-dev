@@ -1,23 +1,12 @@
-# Select Environment
-- Dev: `N`
-- Staging: `N`
-- Preprod: `N`
-- Prod: `N`
+# PR Description Template
 
-# Image Tags for Selected Environment
-### Dev Environment 
-- **AP Region:** ``
-- **EU Region:** ``
-- **US Region:** ``
-### Staging Environment 
-- **AP Region:** ``
-- **EU Region:** ``
-- **US Region:** ``
-### Preprod Environment 
-- **AP Region:** ``
-- **EU Region:** ``
-- **US Region:** ``
-### Prod Environment 
-- **AP Region:** ``
-- **EU Region:** ``
-- **US Region:** ``
+## Select Environment:
+- [ ] dev
+- [ ] staging
+- [ ] preprod
+- [ ] prod
+
+## Image Tag Values:
+- ap-image-tag: <image-tag>
+- eu-image-tag: <image-tag>
+- us-image-tag: <image-tag>
