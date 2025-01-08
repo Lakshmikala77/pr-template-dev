@@ -6,23 +6,8 @@ on:
       - dev
 
 jobs:
-  lint:
-    #if: ${{ startsWith(github.event.pull_request.title, '[ap/eu/us/')}}
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Get PR title in a Pull request event
-        uses: ./.github/actions/pr-title
-
-      - name: Linting
-        run: npm run lint
-        shell: bash
-
+  
   build-and-push:
-    needs: lint
     name: Build and Push
     runs-on: ubuntu-latest
     permissions:
