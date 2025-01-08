@@ -21,8 +21,10 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t your-docker-lakshmikala77/my-app:$GITHUB_SHA .
-
+          docker build -t -lakshmikala77/my-app:$GITHUB_SHA .
+      - name: List Docker images (for debugging)
+        run: |
+          docker images
       - name: Push Docker image to Docker Hub
         run: |
           docker push your-docker-lakshmikala77/my-app:$GITHUB_SHA
