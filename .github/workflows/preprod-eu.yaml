@@ -3,11 +3,11 @@ name: Build and Push Docker Image to Docker Hub
 on:
   pull_request:
     branches:
-       - prod
+      - preprod
 
 jobs:
   lint:
-    if: ${{ startsWith(github.event.pull_request.title, '[us/') && github.event.pull_request.base.ref == 'prod' }}
+    if: ${{ startsWith(github.event.pull_request.title, '[eu/') && github.event.pull_request.base.ref == 'preprod' }}
     name: Lint
     runs-on: ubuntu-latest
     steps:
@@ -46,24 +46,25 @@ jobs:
           PR_BODY=$(jq -r '.pull_request.body' < "$GITHUB_EVENT_PATH")
           echo "PR_BODY=$PR_BODY"
 
-          # Extract selected environments
-          PROD_SELECTED=$(echo "$PR_BODY" | grep -oP '(?<=- Prod: `)[^`]+')
+          # Initialize selected environment variables
+          PREPROD_SELECTED=$(echo "$PR_BODY" | grep -oP '(?<=- Preprod: `)[^`]+')
+          echo "PREPROD_SELECTED=$PREPROD_SELECTED" >> $GITHUB_ENV
 
-          # Echo selected environment for later steps
-          echo "PROD_SELECTED=$PROD_SELECTED" >> $GITHUB_ENV
+          # Extract image tags for each region
+          PREPROD_IMAGE_EU=$(echo "$PR_BODY" | grep -A 3 "Preprod Environment" | grep "EU Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+          echo "PREPROD_IMAGE_EU=$PREPROD_IMAGE_EU" >> $GITHUB_ENV
 
-          # Extract image tags for PROD
-          PROD_IMAGE_US=$(echo "$PR_BODY" | grep -A 3 "Prod Environment" | grep "US Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
-          echo "PROD_IMAGE_US=$PROD_IMAGE_US" >> $GITHUB_ENV
+          # Export image tags to the environment
+          echo "PREPROD_IMAGE_EU=$PREPROD_IMAGE_EU" >> $GITHUB_ENV
 
       - name: Validate and Display Selected Environments
         run: |
           echo "Selected Environments:"
 
-          if [ "$PROD_SELECTED" == "Y" ]; then
-            if [ -z "$PROD_IMAGE_US" ]; then
-              echo "Error: Missing image tag values for Prod Environment."
+          if [ "$PREPROD_SELECTED" == "Y" ]; then
+            if [ -z "$PREPROD_IMAGE_EU" ]; then
+              echo "Error: Missing image tag values for Preprod Environment."
               exit 1
             fi
-            echo "Prod: US=$PROD_IMAGE_US"
+            echo "Preprod: EU=$PREPROD_IMAGE_EU"
           fi
