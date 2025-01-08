@@ -1,5 +1,4 @@
 name: Deploy to Dev - AP Region
-
 on:
   pull_request:
     branches:
