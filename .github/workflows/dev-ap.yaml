@@ -31,8 +31,22 @@ jobs:
         run: |
           docker push lakshmi979/my-app:$GITHUB_SHA
 
+    extract-pr-info:
+      - name: Check PR title for skip flag
+        id: check-skip
+        run: |
+          if [[ "${{ github.event.pull_request.title }}" == *"[skip-template]"* ]]; then
+            echo "SKIP_TEMPLATE=true" >> $GITHUB_ENV
+          else
+            echo "SKIP_TEMPLATE=false" >> $GITHUB_ENV
+          fi
 
-
+      - name: Skip template parsing if flagged
+        run: |
+          if [[ "$SKIP_TEMPLATE" == "true" ]]; then
+            echo "Skipping template parsing as per PR title."
+            exit 0
+          fi
       - name: Parse and Validate PR Body
         id: parse_pr
         run: |
