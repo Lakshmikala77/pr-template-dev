@@ -1,21 +1,54 @@
-name: Build and Push Docker Image to Docker Hub
+# name: Build and Push Docker Image to Docker Hub
+
+# on:
+#   pull_request:
+#     branches:
+#       - preprod
+
+# jobs:
+#   lint:
+#     if: ${{ startsWith(github.event.pull_request.title, '[eu/') }}
+#     name: Lint
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v2
+
+#   build-and-push:
+#     needs: lint
+#     name: Build and Push
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+
+#       - name: Log in to Docker Hub
+#         uses: docker/login-action@v2
+#         with:
+#           username: ${{ secrets.DOCKER_USERNAME }}
+#           password: ${{ secrets.DOCKER_PASSWORD }}
+
+#       - name: Build Docker image
+#         run: |
+#           docker build -t lakshmi979/my-app:$GITHUB_SHA .
+
+#       - name: List Docker images (for debugging)
+#         run: |
+#           docker images
+
+#       - name: Push Docker image to Docker Hub
+#         run: |
+#           docker push lakshmi979/my-app:$GITHUB_SHA
+name: Deploy to Preprod EU Region
 
 on:
-  pull_request:
-    branches:
-      - preprod
+  workflow_call:
+    inputs:
+      sha:
+        required: true
+        type: string
 
 jobs:
-  lint:
-    if: ${{ startsWith(github.event.pull_request.title, '[eu/') }}
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-  build-and-push:
-    needs: lint
-    name: Build and Push
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -29,15 +62,16 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t lakshmi979/my-app:$GITHUB_SHA .
-
-      - name: List Docker images (for debugging)
-        run: |
-          docker images
+          docker build -t lakshmi979/my-app:${{ inputs.sha }} .
 
       - name: Push Docker image to Docker Hub
         run: |
-          docker push lakshmi979/my-app:$GITHUB_SHA
+          docker push lakshmi979/my-app:${{ inputs.sha }}
+
+      - name: Deploy to Preprod EU Region
+        run: |
+          echo "Deploying to EU Region"
+          # Add your actual deployment script here
 
       - name: Parse and Validate PR Body
         id: parse_pr
