@@ -1,0 +1,98 @@
+name: Verify input string
+description: This action verifies if the input string is of valid format
+runs:
+  using: composite
+  steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v4
+
+    - name: Get the event name
+      shell: bash
+      run: |
+        echo "Event name: ${{ github.event_name }}"
+        
+    - name: Get PR title in a Pull request event
+      if: ${{ github.event_name == 'pull_request_review' }}
+      uses: ./.github/actions/get-pr-title
+
+    - name: Get PR title in a Pull request event
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: ./.github/actions/get-pr-title
+  
+    - name: Get commit message in a Push to branch event
+      if: ${{ github.event_name == 'push' }}
+      uses: ./.github/actions/get-branch-commit
+  
+    - name: Verify Input string Format ## Input String Format: [region/serviceName/latest(or)20240817]:message ##
+      shell: bash
+      run: |
+
+        inputstring="${{ env.INPUT_STRING }}"
+        switch=0
+        echo $inputstring
+        if [[ $inputstring =~ ^\[[a-zA-Z]+\/[a-zA-Z]+\]:( [a-zA-Z0-9]+)* ]]; then 
+          switch=0
+          echo "$inputstring matches the required format."
+          region=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f1 | tr '[:upper:]' '[:lower:]')
+          subgraph_name=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f2 | tr '[:upper:]' '[:lower:]')
+          # tag=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f3 | tr '[:upper:]' '[:lower:]')
+          echo $region
+          echo $subgraph_name
+          # echo $tag
+          if [[ $region == 'us' || $region == 'eu' || $region == 'ap' ]]; then
+            echo "$region is valid and is present in one of us, eu, ap."
+          else
+            switch=1
+            echo "$region is not valid. Please use region in one of us, eu, ap."
+          fi
+          if [[ $subgraph_name == 'recommendationgraph' ]]; then
+            echo "$subgraph_name is a valid Subgraph name."
+          else
+            switch=1
+            echo "$subgraph_name is not a valid Subgraph name. Please use correct Subgraph name"
+          fi
+        
+          if [[ $switch == 1 ]]; then
+            exit 1
+          fi
+        elif [[ $inputstring =~ ^\[[a-zA-Z]+\/[0-9a-zA-Z]+\/[a-zA-Z]+\]:( [a-zA-Z0-9]+)* ]]; then 
+          switch=0
+          echo "$inputstring matches the required format."
+          region=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f1 | tr '[:upper:]' '[:lower:]')
+          environment=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f2)
+          subgraph_name=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f3 | tr '[:upper:]' '[:lower:]')
+          # tag=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f4 | tr '[:upper:]' '[:lower:]')
+          echo $region
+          echo $environment
+          echo $subgraph_name
+          # echo $tag
+          if [[ $region == 'us' || $region == 'eu' || $region == 'ap' ]]; then
+            echo "$region is valid and is present in one of us, eu, ap."
+          else
+            switch=1
+            echo "$region is not valid. Please use region in one of us, eu, ap."
+          fi
+          if [[ $environment =~ pr[0-9]+ ]]; then
+            echo "$environment is valid"
+          else
+            switch=1
+            echo "$environment is not valid."
+          fi
+          if [[ $subgraph_name == 'recommendationgraph' ]]; then
+            echo "$subgraph_name is a valid Subgraph name."
+          else
+            switch=1
+            echo "$subgraph_name is not a valid Subgraph name. Please use correct Subgraph name"
+          fi
+        
+          if [[ $switch == 1 ]]; then
+            exit 1
+          fi
+        else
+          if [[ ${{ github.event_name }} == 'pull_request' ]]; then
+            echo 'PR title is not of correct format. Please update PR title.'
+          elif [[ ${{ github.event_name }} == 'push' ]]; then
+            echo 'Commit message is not of correct format. Please recommit and push.'
+          fi
+          exit 1
+        fi
