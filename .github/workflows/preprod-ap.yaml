@@ -1,21 +1,80 @@
-name: Build and Push Docker Image to Docker Hub
+# name: Build and Push Docker Image to Docker Hub
+
+# on:
+#   pull_request:
+#     branches:
+#       - preprod
+
+# jobs:
+#   lint:
+#     if: ${{ startsWith(github.event.pull_request.title, '[ap/')}}
+#     name: Lint
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v2
+
+#   build-and-push:
+#     needs: lint
+#     name: Build and Push
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+
+#       - name: Log in to Docker Hub
+#         uses: docker/login-action@v2
+#         with:
+#           username: ${{ secrets.DOCKER_USERNAME }}
+#           password: ${{ secrets.DOCKER_PASSWORD }}
+
+#       - name: Build Docker image
+#         run: |
+#           docker build -t lakshmi979/my-app:$GITHUB_SHA .
+
+#       - name: List Docker images (for debugging)
+#         run: |
+#           docker images
+
+#       - name: Push Docker image to Docker Hub
+#         run: |
+#           docker push lakshmi979/my-app:$GITHUB_SHA
+
+#       - name: Parse and Validate PR Body
+#         id: parse_pr
+#         run: |
+#           # Read the pull request body
+#           PR_BODY=$(jq -r '.pull_request.body' < "$GITHUB_EVENT_PATH")
+#           echo "PR_BODY=$PR_BODY"
+
+#           # Initialize selected environment variables
+#           PREPROD_SELECTED=$(echo "$PR_BODY" | grep -oP '(?<=- Preprod: `)[^`]+')
+#           echo "PREPROD_SELECTED=$PREPROD_SELECTED" >> $GITHUB_ENV
+
+#           # Extract image tags for each region
+#           PREPROD_IMAGE_AP=$(echo "$PR_BODY" | grep -A 3 "Preprod Environment" | grep "AP Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+#           echo "PREPROD_IMAGE_AP=$PREPROD_IMAGE_AP" >> $GITHUB_ENV
+
+#           # Export image tags to the environment
+#           echo "PREPROD_IMAGE_AP=$PREPROD_IMAGE_AP" >> $GITHUB_ENV
+
+#       - name: Validate and Display Selected Environments
+#         run: |
+#           echo "Selected Environments:"
+
+#           if [ "$PREPROD_SELECTED" == "Y" ]; then
+#             if [ -z "$PREPROD_IMAGE_AP" ]; then
+#               echo "Error: Missing image tag values for Preprod Environment."
+#               exit 1
+#             fi
+#             echo "Preprod: AP=$PREPROD_IMAGE_AP"
+#           fi
+name: Preprod AP Region Deployment
 
 on:
-  pull_request:
-    branches:
-      - preprod
+  workflow_call: {}
 
 jobs:
-  lint:
-    if: ${{ startsWith(github.event.pull_request.title, '[ap/')}}
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-  build-and-push:
-    needs: lint
-    name: Build and Push
+  deploy-ap-region:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -27,18 +86,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker image
+      - name: Build and Push AP Region Image
         run: |
-          docker build -t lakshmi979/my-app:$GITHUB_SHA .
+          docker build -t my-app:preprod-ap .
+          docker push my-app:preprod-ap
 
-      - name: List Docker images (for debugging)
+      - name: Deploy to Preprod AP
         run: |
-          docker images
-
-      - name: Push Docker image to Docker Hub
-        run: |
-          docker push lakshmi979/my-app:$GITHUB_SHA
-
+          echo "Deploying to AP region"
+          # Add deployment commands here
       - name: Parse and Validate PR Body
         id: parse_pr
         run: |
