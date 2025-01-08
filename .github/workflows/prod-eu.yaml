@@ -6,9 +6,17 @@ on:
       - prod
 
 jobs:
-  build-and-push:
+  lint:
+    if: ${{ startsWith(github.event.pull_request.title, '[us/') && github.event.pull_request.base.ref == 'prod' }}
+    name: Lint
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
 
+  build-and-push:
+    needs: lint
+    name: Build and Push
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
