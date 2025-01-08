@@ -1,4 +1,4 @@
-name: Build and Push Docker Image to Docker Hub
+name: Build and Push Docker Image to Docker Hub-dev-eu
 
 on:
   pull_request:
@@ -6,31 +6,51 @@ on:
       - dev
 
 jobs:
-  # lint:
-    #if: ${{startsWith(github.event.pull_request.title, '[us/') && github.event.pull_request.base.ref == 'production'}}
-  build-and-push:
+  lint:
+    if: ${{ startsWith(github.event.pull_request.title, '[ap/eu/us/')}}
+    name: Lint
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
+      - name: Get PR title in a Pull request event
+        uses: ./.github/actions/pr-title
+
+      - name: Linting
+        run: npm run lint
+        shell: bash
+
+  build-and-push:
+    needs: lint
+    name: Build and Push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+ 
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Run Action for Retrieving PR Title
+      uses: ./.github/actions/pr-title
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker image
-        run: |
+    - name: Build Docker image
+      run: |
           docker build -t lakshmi979/my-app:$GITHUB_SHA .
 
-      - name: List Docker images (for debugging)
-        run: |
+    - name: List Docker images (for debugging)
+      run: |
           docker images
 
-      - name: Push Docker image to Docker Hub
-        run: |
+    - name: Push Docker image to Docker Hub
+      run: |
           docker push lakshmi979/my-app:$GITHUB_SHA
 
   extract-pr-info:
