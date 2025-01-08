@@ -57,8 +57,8 @@ jobs:
           # DEV_IMAGE_US=$(echo "$PR_BODY" | grep -A 3 "Dev Environment" | grep "US Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
 
           STAGING_IMAGE_AP=$(echo "$PR_BODY" | grep -A 3 "Staging Environment" | grep "AP Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
-          STAGING_IMAGE_EU=$(echo "$PR_BODY" | grep -A 3 "Staging Environment" | grep "EU Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
-          STAGING_IMAGE_US=$(echo "$PR_BODY" | grep -A 3 "Staging Environment" | grep "US Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+          # STAGING_IMAGE_EU=$(echo "$PR_BODY" | grep -A 3 "Staging Environment" | grep "EU Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+          # STAGING_IMAGE_US=$(echo "$PR_BODY" | grep -A 3 "Staging Environment" | grep "US Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
 
           # PREPROD_IMAGE_AP=$(echo "$PR_BODY" | grep -A 3 "Preprod Environment" | grep "AP Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
           # PREPROD_IMAGE_EU=$(echo "$PR_BODY" | grep -A 3 "Preprod Environment" | grep "EU Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
@@ -73,8 +73,8 @@ jobs:
           # echo "DEV_IMAGE_EU=$DEV_IMAGE_EU" >> $GITHUB_ENV
           # echo "DEV_IMAGE_US=$DEV_IMAGE_US" >> $GITHUB_ENV
           echo "STAGING_IMAGE_AP=$STAGING_IMAGE_AP" >> $GITHUB_ENV
-          echo "STAGING_IMAGE_EU=$STAGING_IMAGE_EU" >> $GITHUB_ENV
-          echo "STAGING_IMAGE_US=$STAGING_IMAGE_US" >> $GITHUB_ENV
+          # echo "STAGING_IMAGE_EU=$STAGING_IMAGE_EU" >> $GITHUB_ENV
+          # echo "STAGING_IMAGE_US=$STAGING_IMAGE_US" >> $GITHUB_ENV
           # echo "PREPROD_IMAGE_AP=$PREPROD_IMAGE_AP" >> $GITHUB_ENV
           # echo "PREPROD_IMAGE_EU=$PREPROD_IMAGE_EU" >> $GITHUB_ENV
           # echo "PREPROD_IMAGE_US=$PREPROD_IMAGE_US" >> $GITHUB_ENV
@@ -95,11 +95,11 @@ jobs:
           # fi
 
           if [ "$STAGING_SELECTED" == "Y" ]; then
-            if [ -z "$STAGING_IMAGE_AP" ] || [ -z "$STAGING_IMAGE_EU" ] || [ -z "$STAGING_IMAGE_US" ]; then
+            if [ -z "$STAGING_IMAGE_AP" ]; then
               echo "Error: Missing image tag values for Staging Environmensts."
               exit 1
             fi
-            echo "Staging: AP=$STAGING_IMAGE_AP, EU=$STAGING_IMAGE_EU, US=$STAGING_IMAGE_US"
+            echo "Staging: AP=$STAGING_IMAGE_AP"
           fi
 
           # if [ "$PREPROD_SELECTED" == "Y" ]; then
