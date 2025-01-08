@@ -14,15 +14,12 @@ runs:
       
     - name: Get PR title in a Pull request review event
       if: ${{ github.event_name == 'pull_request_review' }}
-      uses: ./.github/actions/get-pr-title
+      uses: ./.github/actions/pr-title
 
     - name: Get PR title in a Pull request event
       if: ${{ github.event_name == 'pull_request' }}
-      uses: ./.github/actions/get-pr-title      
+      uses: ./.github/actions/pr-title      
 
-    - name: Get commit message in a Push to branch event
-      if: ${{ github.event_name == 'push' }}
-      uses: ./.github/actions/get-branch-commit
 
     
     - name: Verify Input string
