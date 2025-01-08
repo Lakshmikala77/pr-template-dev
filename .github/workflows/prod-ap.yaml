@@ -1,5 +1,4 @@
 name: Build and Push Docker Image to Docker Hub
-
 on:
   pull_request:
     branches:
@@ -7,7 +6,7 @@ on:
 
 jobs:
   lint:
-    if: ${{ startsWith(github.event.pull_request.title, '[ap/') && github.event.pull_request.base.ref == 'prod' }}
+    if: ${{ startsWith(github.event.pull_request.title, '[ap/') }}
     name: Lint
     runs-on: ubuntu-latest
     steps:

@@ -1,0 +1,73 @@
+name: Verify input string
+description: This action verifies if the input string is of valid format for single region deployment on Pull request review trigger.
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Get the event name
+      shell: bash
+      run: |
+        echo "Event name: ${{ github.event_name }}"
+      
+    - name: Get PR title in a Pull request review event
+      if: ${{ github.event_name == 'pull_request_review' }}
+      uses: ./.github/actions/pr-title
+
+    - name: Get PR title in a Pull request event
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: ./.github/actions/pr-title      
+
+
+    
+    - name: Verify Input string
+      shell: bash
+      run: |
+        inputstring="${{ env.INPUT_STRING }}"
+        switch=0
+        echo $inputstring
+        if [[ $inputstring =~ ^\[[a-zA-Z]+\]:( [a-zA-Z0-9]+)* ]]; then
+          echo "$inputstring matches the required format."
+          region=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f1 | tr '[:upper:]' '[:lower:]')
+          echo $region
+
+          if [[ $region == 'us' || $region == 'eu' || $region == 'ap' ]]; then
+            echo "$region is valid and is present in one of us, eu, ap."
+          else
+            switch=1
+            echo "$region is not valid. Please use region in one of us, eu, ap."
+          fi    
+          
+        
+        elif [[ $inputstring =~ ^\[[a-zA-Z]+\/[0-9a-zA-Z]+\]:( [a-zA-Z0-9]+)* ]]; then
+          echo "$inputstring matches the required format."
+          region=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f1 | tr '[:upper:]' '[:lower:]')
+          environment=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f2)          
+          
+          echo $region
+          echo $environment
+
+          if [[ $region == 'us' || $region == 'eu' || $region == 'ap' ]]; then
+            echo "$region is valid and is present in one of us, eu, ap."
+          else
+            switch=1
+            echo "$region is not valid. Please use region in one of us, eu, ap."
+          fi 
+
+          if [[ $environment =~ pr[0-9]+ ]]; then
+            echo "$environment is valid"
+          else
+            switch=1
+            echo "$environment is not valid."
+          fi          
+          
+        else
+          if [[ ${{ github.event_name }} == 'pull_request' ]]; then
+            echo 'PR title is not of correct format. Please update PR title.'
+          elif [[ ${{ github.event_name }} == 'push' ]]; then
+            echo 'Commit message is not of correct format. Please recommit and push.'
+          fi
+          exit 1
+        fi
