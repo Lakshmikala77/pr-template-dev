@@ -262,6 +262,62 @@
 #         run: |
 #           echo "Deploying to AP Region"
 #           # Your deployment script here
+# name: Trigger Preprod Region Deployment
+
+# on:
+#   pull_request:
+#     branches:
+#       - preprod
+
+# jobs:
+#   determine-region:
+#     runs-on: ubuntu-latest
+#     outputs:
+#       target-files: ${{ steps.set-region.outputs.target-files }}
+#     steps:
+#       - name: Parse PR Title
+#         id: set-region
+#         run: |
+#           PR_TITLE="${{ github.event.pull_request.title }}"
+#           echo "PR Title: $PR_TITLE"
+#           # Logic for determining region(s) based on PR title
+#           if [[ "$PR_TITLE" == *"[ap]: deploy"* ]]; then
+#             echo "::set-output name=target-files::preprod-ap"
+#           elif [[ "$PR_TITLE" == *"[eu]: deploy"* ]]; then
+#             echo "::set-output name=target-files::preprod-eu"
+#           elif [[ "$PR_TITLE" == *"[us]: deploy"* ]]; then
+#             echo "::set-output name=target-files::preprod-us"
+#           elif [[ "$PR_TITLE" == *"[ap/eu/us]: deploy"* ]]; then
+#             echo "::set-output name=target-files::preprod-ap,preprod-eu,preprod-us"
+#           else
+#             # Default: Deploy all regions
+#             echo "::set-output name=target-files::preprod-ap,preprod-eu,preprod-us"
+#           fi
+
+#   trigger-region-deployment:
+#     needs: determine-region
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+
+#       - name: Trigger AP Region Deployment
+#         if: contains(needs.determine-region.outputs.target-files, 'preprod-ap')
+#         uses: ./.github/workflows/preprod-ap.yaml
+#         with:
+#           sha: ${{ github.sha }}
+
+#       - name: Trigger EU Region Deployment
+#         if: contains(needs.determine-region.outputs.target-files, 'preprod-eu')
+#         uses: ./.github/workflows/preprod-eu.yaml
+#         with:
+#           sha: ${{ github.sha }}
+
+#       - name: Trigger US Region Deployment
+#         if: contains(needs.determine-region.outputs.target-files, 'preprod-us')
+#         uses: ./.github/workflows/preprod-us.yaml
+#         with:
+#           sha: ${{ github.sha }}
 name: Trigger Preprod Region Deployment
 
 on:
