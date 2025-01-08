@@ -1,4 +1,46 @@
-# # # # name: Deploy to Preprod - Single Region
+# # # # # name: Deploy to Preprod - Single Region
+
+# # # # # on:
+# # # # #   pull_request:
+# # # # #     branches:
+# # # # #       - preprod
+
+# # # # # jobs:
+# # # # #   deploy-single-region:
+# # # # #     runs-on: ubuntu-latest
+# # # # #     steps:
+# # # # #       - name: Checkout code
+# # # # #         uses: actions/checkout@v2
+
+# # # # #       - name: Log in to Docker Hub
+# # # # #         uses: docker/login-action@v2
+# # # # #         with:
+# # # # #           username: ${{ secrets.DOCKER_USERNAME }}
+# # # # #           password: ${{ secrets.DOCKER_PASSWORD }}
+
+# # # # #       - name: Determine Target Region
+# # # # #         id: determine-region
+# # # # #         run: |
+# # # # #           PR_TITLE="${{ github.event.pull_request.title }}"
+# # # # #           echo "PR Title: $PR_TITLE"
+
+# # # # #           if [[ "$PR_TITLE" == *"[ap]: deploy"* ]]; then
+# # # # #             echo "TARGET_REGION=AP" >> $GITHUB_ENV
+# # # # #           elif [[ "$PR_TITLE" == *"[eu]: deploy"* ]]; then
+# # # # #             echo "TARGET_REGION=EU" >> $GITHUB_ENV
+# # # # #           elif [[ "$PR_TITLE" == *"[us]: deploy"* ]]; then
+# # # # #             echo "TARGET_REGION=US" >> $GITHUB_ENV
+# # # # #           else
+# # # # #             echo "TARGET_REGION=ALL" >> $GITHUB_ENV
+
+# # # # #       - name: Build Docker Image
+# # # # #         run: |
+# # # # #           docker build \
+# # # # #             --build-arg REGION=${{ env.TARGET_REGION }} \
+# # # # #             -t lakshmi979/my-app:$GITHUB_SHA .
+
+# # # # #       
+# # # # name: Trigger Preprod Region Deployment
 
 # # # # on:
 # # # #   pull_request:
@@ -6,40 +48,46 @@
 # # # #       - preprod
 
 # # # # jobs:
-# # # #   deploy-single-region:
+# # # #   determine-region:
 # # # #     runs-on: ubuntu-latest
+# # # #     outputs:
+# # # #       target-file: ${{ steps.set-region.outputs.target-file }}
 # # # #     steps:
-# # # #       - name: Checkout code
-# # # #         uses: actions/checkout@v2
-
-# # # #       - name: Log in to Docker Hub
-# # # #         uses: docker/login-action@v2
-# # # #         with:
-# # # #           username: ${{ secrets.DOCKER_USERNAME }}
-# # # #           password: ${{ secrets.DOCKER_PASSWORD }}
-
-# # # #       - name: Determine Target Region
-# # # #         id: determine-region
+# # # #       - name: Parse PR Title
+# # # #         id: set-region
 # # # #         run: |
 # # # #           PR_TITLE="${{ github.event.pull_request.title }}"
 # # # #           echo "PR Title: $PR_TITLE"
 
-# # # #           if [[ "$PR_TITLE" == *"[ap]: deploy"* ]]; then
-# # # #             echo "TARGET_REGION=AP" >> $GITHUB_ENV
-# # # #           elif [[ "$PR_TITLE" == *"[eu]: deploy"* ]]; then
-# # # #             echo "TARGET_REGION=EU" >> $GITHUB_ENV
-# # # #           elif [[ "$PR_TITLE" == *"[us]: deploy"* ]]; then
-# # # #             echo "TARGET_REGION=US" >> $GITHUB_ENV
+# # # #           if [[ "$PR_TITLE" == *"[ap]"* ]]; then
+# # # #             echo "target-file=preprod-ap.yaml" >> $GITHUB_ENV
+# # # #             echo "::set-output name=target-file::preprod-ap.yaml"
+# # # #           elif [[ "$PR_TITLE" == *"[eu]"* ]]; then
+# # # #             echo "target-file=preprod-eu.yaml" >> $GITHUB_ENV
+# # # #             echo "::set-output name=target-file::preprod-eu.yaml"
+# # # #           elif [[ "$PR_TITLE" == *"[us]"* ]]; then
+# # # #             echo "target-file=preprod-us.yaml" >> $GITHUB_ENV
+# # # #             echo "::set-output name=target-file::preprod-us.yaml"
 # # # #           else
-# # # #             echo "TARGET_REGION=ALL" >> $GITHUB_ENV
+# # # #             echo "Error: No valid region specified in PR title."
+# # # #             exit 1
+# # # #           fi
 
-# # # #       - name: Build Docker Image
+# # # #   trigger-region-deployment:
+# # # #     needs: determine-region
+# # # #     runs-on: ubuntu-latest
+# # # #     steps:
+# # # #       - name: Trigger Region Deployment
+# # # #         uses: actions/checkout@v2
+
+# # # #       - name: Call Deployment File
 # # # #         run: |
-# # # #           docker build \
-# # # #             --build-arg REGION=${{ env.TARGET_REGION }} \
-# # # #             -t lakshmi979/my-app:$GITHUB_SHA .
+# # # #           echo "Triggering deployment using ${{ needs.determine-region.outputs.target-file }}"
+# # # #         # Replace the following with actual logic to trigger the region-specific file
+# # # #         # For example, this could run a script or call a reusable workflow
+# # # #         run: |
+# # # #           ./scripts/${{ needs.determine-region.outputs.target-file }}
 
-# # # #       
 # # # name: Trigger Preprod Region Deployment
 
 # # # on:
@@ -51,7 +99,7 @@
 # # #   determine-region:
 # # #     runs-on: ubuntu-latest
 # # #     outputs:
-# # #       target-file: ${{ steps.set-region.outputs.target-file }}
+# # #       target-files: ${{ steps.set-region.outputs.target-files }}
 # # #     steps:
 # # #       - name: Parse PR Title
 # # #         id: set-region
@@ -59,34 +107,32 @@
 # # #           PR_TITLE="${{ github.event.pull_request.title }}"
 # # #           echo "PR Title: $PR_TITLE"
 
-# # #           if [[ "$PR_TITLE" == *"[ap]"* ]]; then
-# # #             echo "target-file=preprod-ap.yaml" >> $GITHUB_ENV
-# # #             echo "::set-output name=target-file::preprod-ap.yaml"
-# # #           elif [[ "$PR_TITLE" == *"[eu]"* ]]; then
-# # #             echo "target-file=preprod-eu.yaml" >> $GITHUB_ENV
-# # #             echo "::set-output name=target-file::preprod-eu.yaml"
-# # #           elif [[ "$PR_TITLE" == *"[us]"* ]]; then
-# # #             echo "target-file=preprod-us.yaml" >> $GITHUB_ENV
-# # #             echo "::set-output name=target-file::preprod-us.yaml"
+# # #           # Logic for determining region(s) based on PR title
+# # #           if [[ "$PR_TITLE" == *"[ap]: deploy"* ]]; then
+# # #             echo "::set-output name=target-files::preprod-ap.yaml"
+# # #           elif [[ "$PR_TITLE" == *"[eu]: deploy"* ]]; then
+# # #             echo "::set-output name=target-files::preprod-eu.yaml"
+# # #           elif [[ "$PR_TITLE" == *"[us]: deploy"* ]]; then
+# # #             echo "::set-output name=target-files::preprod-us.yaml"
+# # #           elif [[ "$PR_TITLE" == *"[ap/eu/us]: deploy"* ]]; then
+# # #             echo "::set-output name=target-files::preprod-ap.yaml,preprod-eu.yaml,preprod-us.yaml"
 # # #           else
-# # #             echo "Error: No valid region specified in PR title."
-# # #             exit 1
+# # #             # Default: Deploy all regions
+# # #             echo "::set-output name=target-files::preprod-ap.yaml,preprod-eu.yaml,preprod-us.yaml"
 # # #           fi
 
 # # #   trigger-region-deployment:
 # # #     needs: determine-region
 # # #     runs-on: ubuntu-latest
+# # #     strategy:
+# # #       matrix:
+# # #         region: [${{ fromJson(needs.determine-region.outputs.target-files) }}]
 # # #     steps:
-# # #       - name: Trigger Region Deployment
+# # #       - name: Checkout code
 # # #         uses: actions/checkout@v2
 
-# # #       - name: Call Deployment File
-# # #         run: |
-# # #           echo "Triggering deployment using ${{ needs.determine-region.outputs.target-file }}"
-# # #         # Replace the following with actual logic to trigger the region-specific file
-# # #         # For example, this could run a script or call a reusable workflow
-# # #         run: |
-# # #           ./scripts/${{ needs.determine-region.outputs.target-file }}
+# # #       - name: Trigger Region Deployment
+# # #         uses: ./path/to/${{ matrix.region }}  # This will dynamically trigger the corresponding YAML file
 
 # # name: Trigger Preprod Region Deployment
 
@@ -106,19 +152,18 @@
 # #         run: |
 # #           PR_TITLE="${{ github.event.pull_request.title }}"
 # #           echo "PR Title: $PR_TITLE"
-
 # #           # Logic for determining region(s) based on PR title
 # #           if [[ "$PR_TITLE" == *"[ap]: deploy"* ]]; then
-# #             echo "::set-output name=target-files::preprod-ap.yaml"
+# #             echo "::set-output name=target-files::['preprod-ap.yaml']"
 # #           elif [[ "$PR_TITLE" == *"[eu]: deploy"* ]]; then
-# #             echo "::set-output name=target-files::preprod-eu.yaml"
+# #             echo "::set-output name=target-files::['preprod-eu.yaml']"
 # #           elif [[ "$PR_TITLE" == *"[us]: deploy"* ]]; then
-# #             echo "::set-output name=target-files::preprod-us.yaml"
+# #             echo "::set-output name=target-files::['preprod-us.yaml']"
 # #           elif [[ "$PR_TITLE" == *"[ap/eu/us]: deploy"* ]]; then
-# #             echo "::set-output name=target-files::preprod-ap.yaml,preprod-eu.yaml,preprod-us.yaml"
+# #             echo "::set-output name=target-files::['preprod-ap.yaml','preprod-eu.yaml','preprod-us.yaml']"
 # #           else
 # #             # Default: Deploy all regions
-# #             echo "::set-output name=target-files::preprod-ap.yaml,preprod-eu.yaml,preprod-us.yaml"
+# #             echo "::set-output name=target-files::['preprod-ap.yaml','preprod-eu.yaml','preprod-us.yaml']"
 # #           fi
 
 # #   trigger-region-deployment:
@@ -126,14 +171,13 @@
 # #     runs-on: ubuntu-latest
 # #     strategy:
 # #       matrix:
-# #         region: [${{ fromJson(needs.determine-region.outputs.target-files) }}]
+# #         region: ${{ fromJson(needs.determine-region.outputs.target-files) }}
 # #     steps:
 # #       - name: Checkout code
 # #         uses: actions/checkout@v2
 
 # #       - name: Trigger Region Deployment
-# #         uses: ./path/to/${{ matrix.region }}  # This will dynamically trigger the corresponding YAML file
-
+# #         uses: ./path/to/${{ matrix.region }}  # Dynamically trigger corresponding region deployment YAML file
 # name: Trigger Preprod Region Deployment
 
 # on:
@@ -169,62 +213,52 @@
 #   trigger-region-deployment:
 #     needs: determine-region
 #     runs-on: ubuntu-latest
-#     strategy:
-#       matrix:
-#         region: ${{ fromJson(needs.determine-region.outputs.target-files) }}
 #     steps:
 #       - name: Checkout code
 #         uses: actions/checkout@v2
 
-#       - name: Trigger Region Deployment
-#         uses: ./path/to/${{ matrix.region }}  # Dynamically trigger corresponding region deployment YAML file
-name: Trigger Preprod Region Deployment
+#       - name: Trigger AP Region Deployment
+#         if: contains(needs.determine-region.outputs.target-files, 'preprod-ap.yaml')
+#         uses: ./github/workflows/preprod-ap.yaml
+
+#       - name: Trigger EU Region Deployment
+#         if: contains(needs.determine-region.outputs.target-files, 'preprod-eu.yaml')
+#         uses: ./github/workflows/preprod-eu.yaml
+
+#       - name: Trigger US Region Deployment
+#         if: contains(needs.determine-region.outputs.target-files, 'preprod-us.yaml')
+#         uses: ./github/workflows/preprod-us.yaml
+name: Deploy to Preprod AP Region
 
 on:
-  pull_request:
-    branches:
-      - preprod
+  workflow_call:
+    inputs:
+      sha:
+        required: true
+        type: string
 
 jobs:
-  determine-region:
-    runs-on: ubuntu-latest
-    outputs:
-      target-files: ${{ steps.set-region.outputs.target-files }}
-    steps:
-      - name: Parse PR Title
-        id: set-region
-        run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          echo "PR Title: $PR_TITLE"
-          # Logic for determining region(s) based on PR title
-          if [[ "$PR_TITLE" == *"[ap]: deploy"* ]]; then
-            echo "::set-output name=target-files::['preprod-ap.yaml']"
-          elif [[ "$PR_TITLE" == *"[eu]: deploy"* ]]; then
-            echo "::set-output name=target-files::['preprod-eu.yaml']"
-          elif [[ "$PR_TITLE" == *"[us]: deploy"* ]]; then
-            echo "::set-output name=target-files::['preprod-us.yaml']"
-          elif [[ "$PR_TITLE" == *"[ap/eu/us]: deploy"* ]]; then
-            echo "::set-output name=target-files::['preprod-ap.yaml','preprod-eu.yaml','preprod-us.yaml']"
-          else
-            # Default: Deploy all regions
-            echo "::set-output name=target-files::['preprod-ap.yaml','preprod-eu.yaml','preprod-us.yaml']"
-          fi
-
-  trigger-region-deployment:
-    needs: determine-region
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Trigger AP Region Deployment
-        if: contains(needs.determine-region.outputs.target-files, 'preprod-ap.yaml')
-        uses: ./github/workflows/preprod-ap.yaml
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Trigger EU Region Deployment
-        if: contains(needs.determine-region.outputs.target-files, 'preprod-eu.yaml')
-        uses: ./github/workflows/preprod-eu.yaml
+      - name: Build Docker image
+        run: |
+          docker build -t lakshmi979/my-app:${{ inputs.sha }} .
 
-      - name: Trigger US Region Deployment
-        if: contains(needs.determine-region.outputs.target-files, 'preprod-us.yaml')
-        uses: ./github/workflows/preprod-us.yaml
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push lakshmi979/my-app:${{ inputs.sha }}
+
+      - name: Deploy to Preprod AP Region
+        run: |
+          echo "Deploying to AP Region"
+          # Your deployment script here
