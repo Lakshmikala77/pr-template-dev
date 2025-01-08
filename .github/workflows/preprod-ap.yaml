@@ -68,13 +68,17 @@
 #             fi
 #             echo "Preprod: AP=$PREPROD_IMAGE_AP"
 #           fi
-name: Preprod AP Region Deployment
+name: Deploy to Preprod AP Region
 
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      sha:
+        required: true
+        type: string
 
 jobs:
-  deploy-ap-region:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -86,15 +90,19 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Push AP Region Image
+      - name: Build Docker image
         run: |
-          docker build -t my-app:preprod-ap .
-          docker push my-app:preprod-ap
+          docker build -t lakshmi979/my-app:${{ inputs.sha }} .
 
-      - name: Deploy to Preprod AP
+      - name: Push Docker image to Docker Hub
         run: |
-          echo "Deploying to AP region"
-          # Add deployment commands here
+          docker push lakshmi979/my-app:${{ inputs.sha }}
+
+      - name: Deploy to Preprod AP Region
+        run: |
+          echo "Deploying to AP Region"
+          # Your deployment script here
+
       - name: Parse and Validate PR Body
         id: parse_pr
         run: |
