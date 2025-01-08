@@ -14,9 +14,9 @@ jobs:
         run: |
           # Extract the PR body from the GitHub event
           PR_BODY="${{ github.event.pull_request.body }}"
-          
+
           # Search for the 'Dev' image tag in the PR description (ensure it's in 'Dev: <image-tag>' format)
-          IMAGE_TAG_DEV_AP=$(echo "$PR_BODY" | grep -oP '(?<=Dev: )[^\n]+' | xargs)
+          IMAGE_TAG_DEV_AP=$(echo "$PR_BODY" | grep -oP '(?<=Dev Environment\s*- AP Region:\s*)[^\n]+' | xargs)
 
           # Check if the image tag is extracted
           if [[ -z "$IMAGE_TAG_DEV_AP" ]]; then
@@ -30,9 +30,9 @@ jobs:
           # Set the image tag as an environment variable so it can be used in later steps
           echo "IMAGE_TAG_DEV_AP=$IMAGE_TAG_DEV_AP" >> $GITHUB_ENV
 
+
       - name: Deploy to Dev - AP Region
         run: |
-          # Make sure the image tag variable is available
+          # Ensure that the image tag is available
           echo "Deploying to Dev AP Region with Image Tag: $IMAGE_TAG_DEV_AP"
-          
           # Add your deployment command here, e.g., kubectl, docker, etc.
