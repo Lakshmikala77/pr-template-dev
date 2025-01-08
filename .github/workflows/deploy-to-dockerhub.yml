@@ -1,21 +1,35 @@
-name: CI/CD Pipeline
+name: Build and Push Docker Image to Docker Hub
 
 on:
   pull_request:
-    types: [opened, edited, synchronize]
+    branches:
+      - dev
 
 jobs:
-  build-and-push:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t lakshmi979/my-app:${{ github.sha }} .
+        run: |
+          docker build -t lakshmi979/my-app:$GITHUB_SHA .
+
+      - name: List Docker images (for debugging)
+        run: |
+          docker images
 
       - name: Push Docker image to Docker Hub
-        run: docker push lakshmi979/my-app:${{ github.sha }}
+        run: |
+          docker push lakshmi979/my-app:$GITHUB_SHA
 
   extract-pr-info:
     needs: build-and-push
