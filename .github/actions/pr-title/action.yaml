@@ -1,0 +1,16 @@
+name: Get PR title
+description: This action retrieves Title from a Pull Request event
+runs:
+  using: composite
+  steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 
+
+    - name: Get Title of Pull Request
+      shell: bash
+      run: |
+        echo "The Title of your PR...."
+        echo ${{ github.event.pull_request.title }}
+        echo "INPUT_STRING=$(echo ${{ github.event.pull_request.title }})" >> $GITHUB_ENV

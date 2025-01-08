@@ -1,0 +1,14 @@
+name: Install Dependencies
+description: Installs application dependencies
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: .nvmrc
+
+    - name: Install dependencies
+      run: npm ci
+      shell: bash
