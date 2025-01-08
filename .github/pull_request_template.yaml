@@ -1,18 +1,24 @@
-### Deployment Information
 
-**Dev Environment:**
-- AP Region: `Dev: <image-tag>`
-- EU Region: `Dev: <image-tag>`
-- US Region: `Dev: <image-tag>`
+# Select Environment
+- Dev: `N`
+- Staging: `N`
+- Preprod: `N`
+- Prod: `N`
 
-**Staging Environment:**
-- AP Region: `Staging: <image-tag>`
-- EU Region: `Staging: <image-tag>`
-- US Region: `Staging: <image-tag>`
-
-**Prod Environment:**
-- AP Region: `Prod: <image-tag>`
-- EU Region: `Prod: <image-tag>`
-- US Region: `Prod: <image-tag>`
-
-
+# Image Tags for Selected Environment
+### Dev Environment 
+- **AP Region:** ``
+- **EU Region:** ``
+- **US Region:** ``
+### Staging Environment 
+- **AP Region:** ``
+- **EU Region:** ``
+- **US Region:** ``
+### Preprod Environment 
+- **AP Region:** ``
+- **EU Region:** ``
+- **US Region:** ``
+### Prod Environment 
+- **AP Region:** ``
+- **EU Region:** ``
+- **US Region:** ``

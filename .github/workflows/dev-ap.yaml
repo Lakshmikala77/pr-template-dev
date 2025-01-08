@@ -12,25 +12,27 @@ jobs:
         uses: actions/checkout@v2
       - name: Extract image tag for Dev AP
         run: |
-          # Extract the image tag from the PR description
+          # Extract the PR body from the GitHub event
           PR_BODY="${{ github.event.pull_request.body }}"
           
-          # Search for the 'Dev' image tag in the PR description (assuming it's like 'Dev: <image-tag>')
+          # Search for the 'Dev' image tag in the PR description (ensure it's in 'Dev: <image-tag>' format)
           IMAGE_TAG_DEV_AP=$(echo "$PR_BODY" | grep -oP '(?<=Dev: )[^\n]+' | xargs)
 
-          # Sanitize the image tag (remove any quotes)
-          IMAGE_TAG_DEV_AP=$(echo "$IMAGE_TAG_DEV_AP" | sed 's/["]//g')
-
-          # Check if the tag is found and output it
+          # Check if the image tag is extracted
           if [[ -z "$IMAGE_TAG_DEV_AP" ]]; then
-            echo "Error: Dev image tag not found!"
+            echo "Error: Dev AP image tag not found!"
             exit 1
           fi
 
+          # Output the image tag for verification
           echo "Dev AP Image Tag: $IMAGE_TAG_DEV_AP"
+          
+          # Set the image tag as an environment variable so it can be used in later steps
           echo "IMAGE_TAG_DEV_AP=$IMAGE_TAG_DEV_AP" >> $GITHUB_ENV
 
-      - name: Deploy to Dev - AP
+      - name: Deploy to Dev - AP Region
         run: |
+          # Make sure the image tag variable is available
           echo "Deploying to Dev AP Region with Image Tag: $IMAGE_TAG_DEV_AP"
+          
           # Add your deployment command here, e.g., kubectl, docker, etc.
