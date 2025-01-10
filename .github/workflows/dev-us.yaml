@@ -1,19 +1,106 @@
-# apiVersion: apps/v1
-# kind: Deployment
-# metadata:
-#   name: dev-us-deployment
-# spec:
-#   replicas: 1
-#   selector:
-#     matchLabels:
-#       app: my-app
-#   template:
-#     metadata:
-#       labels:
-#         app: my-app
-#     spec:
-#       containers:
-#         - name: my-app-container
-#           image: "my-app:${{ inputs.us_image_tag }}"
-#           ports:
-#             - containerPort: 8080
+name: Build and Deploy Docker Image dev-us
+
+on:
+  pull_request:
+    branches:
+      - dev
+     
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t lakshmi979/my-app:$GITHUB_SHA .
+
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push lakshmi979/my-app:$GITHUB_SHA
+
+  extract-image-tags:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Extract image tags from PR description
+        id: extract_tags
+        run: |
+          PR_BODY="${{ github.event.pull_request.body }}"
+          
+          # Extract image tags from the PR description
+          # IMAGE_TAG_DEV_AP=$(echo "$PR_BODY" | grep -oP '(?<=Dev Environment\s*- AP Region: `)[^`]+')
+          # IMAGE_TAG_DEV_EU=$(echo "$PR_BODY" | grep -oP '(?<=Dev Environment\s*- EU Region: `)[^`]+')
+          IMAGE_TAG_DEV_US=$(echo "$PR_BODY" | grep -oP '(?<=Dev Environment\s*- US Region: `)[^`]+')
+
+          # IMAGE_TAG_STAGING_AP=$(echo "$PR_BODY" | grep -oP '(?<=Staging Environment\s*- AP Region: `)[^`]+')
+          # IMAGE_TAG_STAGING_EU=$(echo "$PR_BODY" | grep -oP '(?<=Staging Environment\s*- EU Region: `)[^`]+')
+          # IMAGE_TAG_STAGING_US=$(echo "$PR_BODY" | grep -oP '(?<=Staging Environment\s*- US Region: `)[^`]+')
+
+          # IMAGE_TAG_PROD_AP=$(echo "$PR_BODY" | grep -oP '(?<=Prod Environment\s*- AP Region: `)[^`]+')
+          # IMAGE_TAG_PROD_EU=$(echo "$PR_BODY" | grep -oP '(?<=Prod Environment\s*- EU Region: `)[^`]+')
+          # IMAGE_TAG_PROD_US=$(echo "$PR_BODY" | grep -oP '(?<=Prod Environment\s*- US Region: `)[^`]+')
+
+          # echo "IMAGE_TAG_DEV_AP=$IMAGE_TAG_DEV_AP" >> $GITHUB_ENV
+          # echo "IMAGE_TAG_DEV_EU=$IMAGE_TAG_DEV_EU" >> $GITHUB_ENV
+          echo "IMAGE_TAG_DEV_US=$IMAGE_TAG_DEV_US" >> $GITHUB_ENV
+          # echo "IMAGE_TAG_STAGING_AP=$IMAGE_TAG_STAGING_AP" >> $GITHUB_ENV
+          # echo "IMAGE_TAG_STAGING_EU=$IMAGE_TAG_STAGING_EU" >> $GITHUB_ENV
+          # echo "IMAGE_TAG_STAGING_US=$IMAGE_TAG_STAGING_US" >> $GITHUB_ENV
+          # echo "IMAGE_TAG_PROD_AP=$IMAGE_TAG_PROD_AP" >> $GITHUB_ENV
+          # echo "IMAGE_TAG_PROD_EU=$IMAGE_TAG_PROD_EU" >> $GITHUB_ENV
+          # echo "IMAGE_TAG_PROD_US=$IMAGE_TAG_PROD_US" >> $GITHUB_ENV
+
+      - name: Print image tags for debugging
+        run: |
+          # echo "Dev AP Image Tag: $IMAGE_TAG_DEV_AP"
+          # echo "Dev EU Image Tag: $IMAGE_TAG_DEV_EU"
+          echo "Dev US Image Tag: $IMAGE_TAG_DEV_US"
+          # echo "Staging AP Image Tag: $IMAGE_TAG_STAGING_AP"
+          # echo "Staging EU Image Tag: $IMAGE_TAG_STAGING_EU"
+          # echo "Staging US Image Tag: $IMAGE_TAG_STAGING_US"
+          # echo "Prod AP Image Tag: $IMAGE_TAG_PROD_AP"
+          # echo "Prod EU Image Tag: $IMAGE_TAG_PROD_EU"
+          # echo "Prod US Image Tag: $IMAGE_TAG_PROD_US"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: extract-image-tags
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Deploy to Dev
+        if: github.head_ref == 'dev'
+        run: |
+          echo "Deploying to Dev Environment"
+          # echo "Dev AP Image Tag: $IMAGE_TAG_DEV_AP"
+          # echo "Dev EU Image Tag: $IMAGE_TAG_DEV_EU"
+          echo "Dev US Image Tag: $IMAGE_TAG_DEV_US"
+
+      # - name: Deploy to Staging
+      #   if: github.head_ref == 'staging'
+      #   run: |
+      #     echo "Deploying to Staging Environment"
+      #     echo "Staging AP Image Tag: $IMAGE_TAG_STAGING_AP"
+      #     echo "Staging EU Image Tag: $IMAGE_TAG_STAGING_EU"
+      #     echo "Staging US Image Tag: $IMAGE_TAG_STAGING_US"
+
+      # - name: Deploy to Prod
+      #   if: github.head_ref == 'prod'
+      #   run: |
+      #     echo "Deploying to Prod Environment"
+      #     echo "Prod AP Image Tag: $IMAGE_TAG_PROD_AP"
+      #     echo "Prod EU Image Tag: $IMAGE_TAG_PROD_EU"
+      #     echo "Prod US Image Tag: $IMAGE_TAG_PROD_US"
