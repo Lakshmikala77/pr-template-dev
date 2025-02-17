@@ -3,7 +3,6 @@ name: Build and Push Docker Image to Docker Hub-dev-ap
 on:
   pull_request:
     types: [opened, edited, synchronize]
-
 jobs:
   
   build-and-push:
