@@ -50,6 +50,7 @@ jobs:
             echo "SKIP_TEMPLATE=false" >> $GITHUB_ENV
           fi
 
+          
       - name: Skip template parsing if flagged
         run: |
           if [[ "$SKIP_TEMPLATE" == "true" ]]; then
