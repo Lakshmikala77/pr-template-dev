@@ -1,15 +1,25 @@
 name: Verify input string
+<<<<<<< HEAD
 description: This action verifies if the input string is of valid format
 runs:
   using: composite
   steps:
     - name: Checkout the repository
+=======
+description: This action verifies if the input string is of valid format for parallel deployment in all regions.
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout repository
+>>>>>>> origin/dev
       uses: actions/checkout@v4
 
     - name: Get the event name
       shell: bash
       run: |
         echo "Event name: ${{ github.event_name }}"
+<<<<<<< HEAD
         
     - name: Get PR title in a Pull request event
       if: ${{ github.event_name == 'pull_request_review' }}
@@ -25,17 +35,58 @@ runs:
 
 
     - name: Verify Input string Format
+=======
+      
+    - name: Get PR title in a Pull request review event
+      if: ${{ github.event_name == 'pull_request_review' }}
+      uses: ./.github/actions/pr-title
+
+    - name: Get PR title in a Pull request event
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: ./.github/actions/gpr-title      
+
+  
+
+    - name: Check existence of preprod and prod strings in the PR title
+      shell: bash
+      run: |
+        inputstring="${{ env.INPUT_STRING }}"
+        echo $inputstring
+        echo ${{ github.event.pull_request.base.ref }}
+        if [[ ${{ github.event.pull_request.base.ref }} == 'preproduction' ]]; then
+          if [[ "$inputstring" =~ 'preprod' || "$inputstring" =~ 'Preprod' ]]; then                    
+            echo "$inputstring is valid for preprod deployment."
+          else
+            echo "$inputstring is not valid for preprod deployment as it doesnot contains 'preprod/Preprod' in PR title."
+            exit 1
+          fi  
+        fi
+        if [[ ${{ github.event.pull_request.base.ref }} == 'production' ]]; then
+          if [[ "$inputstring" =~ 'prod' || "$inputstring" =~ 'Prod' ]]; then                    
+            echo "$inputstring is valid for prod deployment."
+          else
+            echo "$inputstring is not valid for prod deployment as it doesnot contains 'prod/Prod' in PR title."
+            exit 1
+          fi 
+        fi
+    - name: Verify Input string
+>>>>>>> origin/dev
       shell: bash
       run: |
         inputstring="${{ env.INPUT_STRING }}"
         switch=0
         echo $inputstring
+<<<<<<< HEAD
         if [[ $inputstring =~ ^\[[a-zA-Z]+\/[a-zA-Z]+\/[a-zA-Z]+\/[a-zA-Z]+\]:( [a-zA-Z0-9]+)* ]]; then 
           switch=0
+=======
+        if [[ $inputstring =~ ^\[[a-zA-Z]+\/[a-zA-Z]+\/[a-zA-Z]+\]:( [a-zA-Z0-9]+)* ]]; then
+>>>>>>> origin/dev
           echo "$inputstring matches the required format."
           ap_region=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f1 | tr '[:upper:]' '[:lower:]')
           eu_region=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f2 | tr '[:upper:]' '[:lower:]')
           us_region=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f3 | tr '[:upper:]' '[:lower:]')
+<<<<<<< HEAD
           subgraph_name=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f4 | tr '[:upper:]' '[:lower:]')
           # tag=$(echo $inputstring | cut -d "]" -f1 | sed 's/^\[//' | cut -d/ -f5 | tr '[:upper:]' '[:lower:]')
           echo $ap_region
@@ -59,6 +110,33 @@ runs:
           if [[ $switch == 1 ]]; then
             exit 1
           fi
+=======
+          echo $ap_region
+          echo $eu_region
+          echo $us_region
+
+          if [[ $us_region == 'us' ]]; then                    
+            echo "$us_region is valid and is present in one of us, eu, ap."
+          else
+            echo "$us_region is not valid. Please use one of the allowed region us, eu, ap."
+            exit 1
+          fi  
+
+          if [[ $eu_region == 'eu' ]]; then                    
+            echo "$eu_region is valid and is present in one of us, eu, ap."
+          else
+            echo "$eu_region is not valid. Please use one of the allowed region us, eu, ap."
+            exit 1
+          fi
+
+          if [[ $ap_region == 'ap' ]]; then                    
+            echo "$ap_region is valid and is present in one of us, eu, ap."          
+          else
+            echo "$ap_region is not valid. Please use one of the allowed region us, eu, ap."
+            exit 1
+          fi
+
+>>>>>>> origin/dev
         else
           if [[ ${{ github.event_name }} == 'pull_request' ]]; then
             echo 'PR title is not of correct format. Please update PR title.'

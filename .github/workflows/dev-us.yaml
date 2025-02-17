@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 name: Build and Deploy Docker Image dev-us
+=======
+name: Build and Push Docker Image to Docker Hub-dev-us
+>>>>>>> origin/dev
 
 on:
   pull_request:
     branches:
       - dev
+<<<<<<< HEAD
      
 
 jobs:
@@ -104,3 +109,143 @@ jobs:
       #     echo "Prod AP Image Tag: $IMAGE_TAG_PROD_AP"
       #     echo "Prod EU Image Tag: $IMAGE_TAG_PROD_EU"
       #     echo "Prod US Image Tag: $IMAGE_TAG_PROD_US"
+=======
+
+jobs:
+  
+  build-and-push:
+    
+    name: Build and Push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+ 
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Run Action for Retrieving PR Title
+      uses: ./.github/actions/pr-title
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build Docker image
+      run: |
+          docker build -t lakshmi979/my-app:$GITHUB_SHA .
+
+    - name: List Docker images (for debugging)
+      run: |
+          docker images
+
+    - name: Push Docker image to Docker Hub
+      run: |
+          docker push lakshmi979/my-app:$GITHUB_SHA
+  extract-pr-info:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    steps:
+      - name: Check PR title for skip flag
+        id: check-skip
+        run: |
+          if [[ "${{ github.event.pull_request.title }}" == *"[skip-template]"* ]]; then
+            echo "SKIP_TEMPLATE=true" >> $GITHUB_ENV
+          else
+            echo "SKIP_TEMPLATE=false" >> $GITHUB_ENV
+          fi
+
+      - name: Skip template parsing if flagged
+        run: |
+          if [[ "$SKIP_TEMPLATE" == "true" ]]; then
+            echo "Skipping template parsing as per PR title."
+            exit 0
+          fi
+      - name: Parse and Validate PR Body
+        id: parse_pr
+        run: |
+          # read the pull request body
+          PR_BODY=$(jq -r '.pull_request.body' < "$GITHUB_EVENT_PATH")
+          echo "PR_BODY=$PR_BODY"
+
+          # Initialize selected environment variables
+          DEV_SELECTED=$(echo "$PR_BODY" | grep -oP '(?<=- Dev: `)[^`]+')
+          # STAGING_SELECTED=$(echo "$PR_BODY" | grep -oP '(?<=- Staging: `)[^`]+')
+          # PREPROD_SELECTED=$(echo "$PR_BODY" | grep -oP '(?<=- Preprod: `)[^`]+')
+          # PROD_SELECTED=$(echo "$PR_BODY" | grep -oP '(?<=- Prod: `)[^`]+')
+
+          echo "DEV_SELECTED=$DEV_SELECTED" >> $GITHUB_ENV
+          # echo "STAGING_SELECTED=$STAGING_SELECTED" >> $GITHUB_ENV
+          # echo "PREPROD_SELECTED=$PREPROD_SELECTED" >> $GITHUB_ENV
+          # echo "PROD_SELECTED=$PROD_SELECTED" >> $GITHUB_ENV
+
+          # Extract image tags for each region
+          #DEV_IMAGE_AP=$(echo "$PR_BODY" | grep -A 3 "Dev Environment" | grep "AP Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+          #DEV_IMAGE_EU=$(echo "$PR_BODY" | grep -A 3 "Dev Environment" | grep "EU Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+          DEV_IMAGE_US=$(echo "$PR_BODY" | grep -A 3 "Dev Environment" | grep "US Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+
+          # STAGING_IMAGE_AP=$(echo "$PR_BODY" | grep -A 3 "Staging Environment" | grep "AP Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+          # STAGING_IMAGE_EU=$(echo "$PR_BODY" | grep -A 3 "Staging Environment" | grep "EU Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+          # STAGING_IMAGE_US=$(echo "$PR_BODY" | grep -A 3 "Staging Environment" | grep "US Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+
+          # PREPROD_IMAGE_AP=$(echo "$PR_BODY" | grep -A 3 "Preprod Environment" | grep "AP Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+          # PREPROD_IMAGE_EU=$(echo "$PR_BODY" | grep -A 3 "Preprod Environment" | grep "EU Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+          # PREPROD_IMAGE_US=$(echo "$PR_BODY" | grep -A 3 "Preprod Environment" | grep "US Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+
+          # PROD_IMAGE_AP=$(echo "$PR_BODY" | grep -A 3 "Prod Environment" | grep "AP Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+          # PROD_IMAGE_EU=$(echo "$PR_BODY" | grep -A 3 "Prod Environment" | grep "EU Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+          # PROD_IMAGE_US=$(echo "$PR_BODY" | grep -A 3 "Prod Environment" | grep "US Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+
+          # Export image tags to the environment
+          #echo "DEV_IMAGE_AP=$DEV_IMAGE_AP" >> $GITHUB_ENV
+          #echo "DEV_IMAGE_EU=$DEV_IMAGE_EU" >> $GITHUB_ENV
+          echo "DEV_IMAGE_US=$DEV_IMAGE_US" >> $GITHUB_ENV
+          # echo "STAGING_IMAGE_AP=$STAGING_IMAGE_AP" >> $GITHUB_ENV
+          # echo "STAGING_IMAGE_EU=$STAGING_IMAGE_EU" >> $GITHUB_ENV
+          # echo "STAGING_IMAGE_US=$STAGING_IMAGE_US" >> $GITHUB_ENV
+          # echo "PREPROD_IMAGE_AP=$PREPROD_IMAGE_AP" >> $GITHUB_ENV
+          # echo "PREPROD_IMAGE_EU=$PREPROD_IMAGE_EU" >> $GITHUB_ENV
+          # echo "PREPROD_IMAGE_US=$PREPROD_IMAGE_US" >> $GITHUB_ENV
+          # echo "PROD_IMAGE_AP=$PROD_IMAGE_AP" >> $GITHUB_ENV
+          # echo "PROD_IMAGE_EU=$PROD_IMAGE_EU" >> $GITHUB_ENV
+          # echo "PROD_IMAGE_US=$PROD_IMAGE_US" >> $GITHUB_ENV
+
+      - name: Validate and Display Selected Environments
+        run: |
+          echo "Selected Environments:"
+
+          if [ "$DEV_SELECTED" == "Y" ]; then
+            if [ -z "$DEV_IMAGE_US" ] ; then
+              echo "Error: Missing image tag values for Dev Environment."
+              exit 1
+            fi
+            echo "Dev:  US=$DEV_IMAGE_US"
+          fi
+
+          # if [ "$STAGING_SELECTED" == "Y" ]; then
+          #   if [ -z "$STAGING_IMAGE_AP" ] || [ -z "$STAGING_IMAGE_EU" ] || [ -z "$STAGING_IMAGE_US" ]; then
+          #     echo "Error: Missing image tag values for Staging Environmensts."
+          #     exit 1
+          #   fi
+          #   echo "Staging: AP=$STAGING_IMAGE_AP, EU=$STAGING_IMAGE_EU, US=$STAGING_IMAGE_US"
+          # fi
+
+          # if [ "$PREPROD_SELECTED" == "Y" ]; then
+          #   if [ -z "$PREPROD_IMAGE_AP" ] || [ -z "$PREPROD_IMAGE_EU" ] || [ -z "$PREPROD_IMAGE_US" ]; then
+          #     echo "Error: Missing image tag values for Preprod Environment."
+          #     exit 1
+          #   fi
+          #   echo "Preprod: AP=$PREPROD_IMAGE_AP, EU=$PREPROD_IMAGE_EU, US=$PREPROD_IMAGE_US"
+          # fi
+
+          # if [ "$PROD_SELECTED" == "Y" ]; then
+          #   if [ -z "$PROD_IMAGE_AP" ] || [ -z "$PROD_IMAGE_EU" ] || [ -z "$PROD_IMAGE_US" ]; then
+          #     echo "Error: Missing image tag values for Prod Environment."
+          #     exit 1
+          #   fi
+          #   echo "Prod: AP=$PROD_IMAGE_AP, EU=$PROD_IMAGE_EU, US=$PROD_IMAGE_US"
+          # fi
+>>>>>>> origin/dev

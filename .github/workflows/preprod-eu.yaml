@@ -1,0 +1,104 @@
+# name: Build and Push Docker Image to Docker Hub
+
+# on:
+#   pull_request:
+#     branches:
+#       - preprod
+
+# jobs:
+#   lint:
+#     if: ${{ startsWith(github.event.pull_request.title, '[eu/') }}
+#     name: Lint
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v2
+
+#   build-and-push:
+#     needs: lint
+#     name: Build and Push
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+
+#       - name: Log in to Docker Hub
+#         uses: docker/login-action@v2
+#         with:
+#           username: ${{ secrets.DOCKER_USERNAME }}
+#           password: ${{ secrets.DOCKER_PASSWORD }}
+
+#       - name: Build Docker image
+#         run: |
+#           docker build -t lakshmi979/my-app:$GITHUB_SHA .
+
+#       - name: List Docker images (for debugging)
+#         run: |
+#           docker images
+
+#       - name: Push Docker image to Docker Hub
+#         run: |
+#           docker push lakshmi979/my-app:$GITHUB_SHA
+name: Deploy to Preprod EU Region
+
+on:
+  workflow_call:
+    inputs:
+      sha:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t lakshmi979/my-app:${{ inputs.sha }} .
+
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push lakshmi979/my-app:${{ inputs.sha }}
+
+      - name: Deploy to Preprod EU Region
+        run: |
+          echo "Deploying to EU Region"
+          # Add your actual deployment script here
+
+      - name: Parse and Validate PR Body
+        id: parse_pr
+        run: |
+          # Read the pull request body
+          PR_BODY=$(jq -r '.pull_request.body' < "$GITHUB_EVENT_PATH")
+          echo "PR_BODY=$PR_BODY"
+
+          # Initialize selected environment variables
+          PREPROD_SELECTED=$(echo "$PR_BODY" | grep -oP '(?<=- Preprod: `)[^`]+')
+          echo "PREPROD_SELECTED=$PREPROD_SELECTED" >> $GITHUB_ENV
+
+          # Extract image tags for each region
+          PREPROD_IMAGE_EU=$(echo "$PR_BODY" | grep -A 3 "Preprod Environment" | grep "EU Region:" | awk -F'`' '{print $2}' | tr -d '[:space:]')
+          echo "PREPROD_IMAGE_EU=$PREPROD_IMAGE_EU" >> $GITHUB_ENV
+
+          # Export image tags to the environment
+          echo "PREPROD_IMAGE_EU=$PREPROD_IMAGE_EU" >> $GITHUB_ENV
+
+      - name: Validate and Display Selected Environments
+        run: |
+          echo "Selected Environments:"
+
+          if [ "$PREPROD_SELECTED" == "Y" ]; then
+            if [ -z "$PREPROD_IMAGE_EU" ]; then
+              echo "Error: Missing image tag values for Preprod Environment."
+              exit 1
+            fi
+            echo "Preprod: EU=$PREPROD_IMAGE_EU"
+          fi
