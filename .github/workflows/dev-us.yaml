@@ -2,8 +2,10 @@ name: Build and Push Docker Image to Docker Hub-dev-us
 
 on:
   pull_request:
-    branches:
-      - dev
+    types: [opened, edited, synchronize]
+  # pull_request:
+  #   branches:
+  #     - dev
 
 jobs:
   
