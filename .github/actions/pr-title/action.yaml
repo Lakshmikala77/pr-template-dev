@@ -6,7 +6,11 @@ runs:
     - name: Checkout the repository
       uses: actions/checkout@v4
       with:
+<<<<<<< HEAD
+        fetch-depth: 0  
+=======
         fetch-depth: 0 
+>>>>>>> origin/dev
 
     - name: Get Title of Pull Request
       shell: bash
